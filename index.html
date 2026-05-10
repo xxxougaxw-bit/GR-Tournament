@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GR Tools</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .home-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 8px; }
+    .home-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px 24px;
+      text-decoration: none;
+      color: var(--text);
+      transition: border-color 0.15s, transform 0.15s;
+      display: block;
+    }
+    .home-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .home-card-icon { font-size: 32px; margin-bottom: 12px; }
+    .home-card-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+    .home-card-desc { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+    .hero { text-align: center; padding: 48px 0 32px; }
+    .hero-title { font-size: 28px; font-weight: 800; color: var(--accent); letter-spacing: -0.5px; }
+    .hero-sub { font-size: 14px; color: var(--text-muted); margin-top: 8px; }
+    @media (max-width: 480px) { .home-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="index.html" class="nav-brand">GR TOOLS</a>
+    <a href="members.html" class="nav-link">メンバー</a>
+    <a href="tournament.html" class="nav-link">トーナメント</a>
+  </nav>
+  <main>
+    <div class="hero">
+      <div class="hero-title">GR TOOLS</div>
+      <div class="hero-sub">GalaxyRize チーム運営ツール</div>
+    </div>
+    <div class="home-grid">
+      <a href="members.html" class="home-card">
+        <div class="home-card-icon">👥</div>
+        <div class="home-card-title">メンバー管理</div>
+        <div class="home-card-desc">Epic ID・Discord IDを登録。ワンクリックでコピー＆メンション生成。</div>
+      </a>
+      <a href="tournament.html" class="home-card">
+        <div class="home-card-icon">🏆</div>
+        <div class="home-card-title">トーナメント</div>
+        <div class="home-card-desc">1v1〜4v4対応。シングル・ダブル・トリプル・総当たり形式をワンクリックで生成。Discord出力付き。</div>
+      </a>
+    </div>
+  </main>
+</body>
+</html>
