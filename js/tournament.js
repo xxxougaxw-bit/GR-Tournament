@@ -152,9 +152,11 @@ function renderWizard() {
           <div class="player-row">
             <span class="player-label">P${pi + 1}</span>
             <input type="text" class="form-input" style="flex:1" placeholder="Epic ID" value="${esc(player.epicId)}"
-              oninput="window._updatePlayer(${i},${pi},'epicId',this.value)"
+              id="epic-${i}-${pi}"
+              oninput="window._updatePlayer(${i},${pi},'epicId',this.value); window._autoFillDiscord(${i},${pi},this.value)"
               list="memberSuggestions" autocomplete="off">
-            <input type="text" class="form-input" style="width:160px" placeholder="Discord ID（任意）" value="${esc(player.discordId)}"
+            <input type="text" class="form-input" style="width:160px" placeholder="Discord ID（自動入力）" value="${esc(player.discordId)}"
+              id="discord-${i}-${pi}"
               oninput="window._updatePlayer(${i},${pi},'discordId',this.value)" autocomplete="off">
           </div>`;
       }).join('');
@@ -169,7 +171,7 @@ function renderWizard() {
         </div>`;
     }).join('');
 
-    const memberOptions = members.map(m => `<option value="${esc(m.epicId)}">`).join('');
+    const memberOptions = members.map(m => `<option value="${esc(m.epicId)}" label="${esc(m.name || m.epicId)}">`).join('');
 
     content = `
       <datalist id="memberSuggestions">${memberOptions}</datalist>
@@ -230,6 +232,16 @@ window._updatePlayer = (ti, pi, field, v) => {
   if (!wizardState.teams[ti]) wizardState.teams[ti] = { name: '', players: [] };
   if (!wizardState.teams[ti].players[pi]) wizardState.teams[ti].players[pi] = { epicId: '', discordId: '' };
   wizardState.teams[ti].players[pi][field] = v;
+};
+
+window._autoFillDiscord = (ti, pi, epicId) => {
+  const member = members.find(m => m.epicId === epicId.trim());
+  if (!member?.discordId) return;
+  if (!wizardState.teams[ti]) wizardState.teams[ti] = { name: '', players: [] };
+  if (!wizardState.teams[ti].players[pi]) wizardState.teams[ti].players[pi] = { epicId: '', discordId: '' };
+  wizardState.teams[ti].players[pi].discordId = member.discordId;
+  const el = document.getElementById(`discord-${ti}-${pi}`);
+  if (el) el.value = member.discordId;
 };
 
 window._shuffleTeams = () => {

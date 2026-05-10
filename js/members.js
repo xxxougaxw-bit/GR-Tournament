@@ -11,6 +11,7 @@ let editingId = null;
 const root = document.getElementById('root');
 const overlay = document.getElementById('overlay');
 const modalTitle = document.getElementById('modalTitle');
+const nameInput = document.getElementById('nameInput');
 const epicIdInput = document.getElementById('epicIdInput');
 const discordIdInput = document.getElementById('discordIdInput');
 const toast = document.getElementById('toast');
@@ -29,10 +30,11 @@ document.addEventListener('keydown', e => {
 function openModal(member) {
   editingId = member?.id ?? null;
   modalTitle.textContent = member ? 'メンバー編集' : 'メンバー追加';
+  nameInput.value = member?.name ?? '';
   epicIdInput.value = member?.epicId ?? '';
   discordIdInput.value = member?.discordId ?? '';
   overlay.classList.add('open');
-  setTimeout(() => epicIdInput.focus(), 50);
+  setTimeout(() => nameInput.focus(), 50);
 }
 function closeModal() {
   overlay.classList.remove('open');
@@ -41,16 +43,18 @@ function closeModal() {
 
 // ── CRUD ─────────────────────────────────────────────────────────────
 async function save() {
+  const name = nameInput.value.trim();
   const epicId = epicIdInput.value.trim();
   const discordId = discordIdInput.value.trim();
+  if (!name) { showToast('名前を入力してください', 'error'); return; }
   if (!epicId) { showToast('Epic IDを入力してください', 'error'); return; }
 
   try {
     if (editingId) {
-      await updateDoc(doc(db, COL, editingId), { epicId, discordId });
+      await updateDoc(doc(db, COL, editingId), { name, epicId, discordId });
       showToast('更新しました', 'success');
     } else {
-      await addDoc(collection(db, COL), { epicId, discordId, createdAt: new Date() });
+      await addDoc(collection(db, COL), { name, epicId, discordId, createdAt: new Date() });
       showToast('追加しました', 'success');
     }
     closeModal();
@@ -105,10 +109,10 @@ function render() {
     <div class="member-list">
       ${members.map(m => `
         <div class="member-row">
-          <div class="member-avatar">${esc(m.epicId[0].toUpperCase())}</div>
+          <div class="member-avatar">${esc((m.name || m.epicId)[0].toUpperCase())}</div>
           <div class="member-info">
-            <div class="member-epic">${esc(m.epicId)}</div>
-            <div class="member-discord">${m.discordId ? 'ID: ' + esc(m.discordId) : 'Discord ID 未設定'}</div>
+            <div class="member-epic">${esc(m.name || m.epicId)}</div>
+            <div class="member-discord">Epic ID: ${esc(m.epicId)}${m.discordId ? ' · Discord: ' + esc(m.discordId) : ' · Discord ID 未設定'}</div>
           </div>
           <div class="member-actions">
             <button class="btn-copy" onclick="copyEpicId('${m.id}', this)">Epic IDをコピー</button>
