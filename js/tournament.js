@@ -132,10 +132,9 @@ function renderWizard() {
       <div class="form-group mt-16">
         <label class="form-label">チーム数</label>
         <select class="form-select" id="teamCount">
-          ${(w.format === 'roundrobin'
-            ? [3,4,5,6,7,8,10,12,16]
-            : [2,4,8,16]
-          ).map(n => `<option value="${n}" ${w.teamCount === n ? 'selected' : ''}>${n}チーム</option>`).join('')}
+          ${[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
+            .filter(n => w.format === 'roundrobin' ? n >= 3 : n >= 2)
+            .map(n => `<option value="${n}" ${w.teamCount === n ? 'selected' : ''}>${n}チーム</option>`).join('')}
         </select>
       </div>
       <div class="flex gap-8 mt-24" style="justify-content:flex-end">
@@ -174,6 +173,9 @@ function renderWizard() {
 
     content = `
       <datalist id="memberSuggestions">${memberOptions}</datalist>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+        <button class="btn btn-outline btn-sm" onclick="window._shuffleTeams()">🎲 ランダムに並べる</button>
+      </div>
       ${teamInputs}
       <div class="flex gap-8 mt-24" style="justify-content:flex-end">
         <button class="btn btn-outline" onclick="window._step2Back()">← 戻る</button>
@@ -228,6 +230,16 @@ window._updatePlayer = (ti, pi, field, v) => {
   if (!wizardState.teams[ti]) wizardState.teams[ti] = { name: '', players: [] };
   if (!wizardState.teams[ti].players[pi]) wizardState.teams[ti].players[pi] = { epicId: '', discordId: '' };
   wizardState.teams[ti].players[pi][field] = v;
+};
+
+window._shuffleTeams = () => {
+  const teams = wizardState.teams.slice(0, wizardState.teamCount);
+  for (let i = teams.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [teams[i], teams[j]] = [teams[j], teams[i]];
+  }
+  wizardState.teams = teams;
+  renderWizard();
 };
 
 window._step1Next = () => {
