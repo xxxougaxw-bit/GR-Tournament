@@ -38,17 +38,14 @@ function applyResult(matches, matchId, winnerIdx) {
   }
 }
 
-// Auto-advance byes (null opponent = automatic win)
+// Auto-advance byes — Round 1 のみ（null = 実際の不戦勝）
+// Round 2 以降の null は「まだ決まっていない（TBD）」なので自動進出させない
 function advanceByes(matches) {
-  let changed = true;
-  while (changed) {
-    changed = false;
-    matches.forEach(m => {
-      if (m.winner !== null) return;
-      if (m.t1 !== null && m.t2 === null) { applyResult(matches, m.id, m.t1); changed = true; }
-      else if (m.t2 !== null && m.t1 === null) { applyResult(matches, m.id, m.t2); changed = true; }
-    });
-  }
+  matches.filter(m => m.round === 1).forEach(m => {
+    if (m.winner !== null) return;
+    if (m.t1 !== null && m.t2 === null) applyResult(matches, m.id, m.t1);
+    else if (m.t2 !== null && m.t1 === null) applyResult(matches, m.id, m.t2);
+  });
 }
 
 // ── SINGLE ELIMINATION ──────────────────────────────────────────────
