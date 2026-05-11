@@ -127,7 +127,7 @@
     ];
 
     let templates = [];
-    const saveTimers = {};
+    const localChanges = {};
 
     // 初回のみデフォルトを投入
     async function initDefaults() {
@@ -165,31 +165,37 @@
         <div class="template-card" id="card-${t.id}">
           <div class="template-header">
             <input class="template-title-input" value="${esc(t.title)}"
-              oninput="window._scheduleUpdate('${t.id}', 'title', this.value)"
+              oninput="window._trackChange('${t.id}', 'title', this.value)"
               placeholder="タイトル">
             <button class="btn btn-outline btn-sm" onclick="window._copyTemplate('${t.id}', this)">コピー</button>
             <button class="btn-ghost-danger" onclick="window._deleteTemplate('${t.id}')">削除</button>
           </div>
           <textarea class="template-body" rows="8"
-            oninput="window._scheduleUpdate('${t.id}', 'text', this.value)"
+            oninput="window._trackChange('${t.id}', 'text', this.value)"
             >${esc(t.text)}</textarea>
           <div class="template-footer">
             <span class="saved-label" id="saved-${t.id}">✓ 保存しました</span>
+            <button class="btn btn-primary btn-sm" onclick="window._saveTemplate('${t.id}')">保存</button>
           </div>
         </div>`;
     }
 
-    // 自動保存（入力が止まって0.8秒後）
-    window._scheduleUpdate = (id, field, value) => {
-      clearTimeout(saveTimers[id]);
-      saveTimers[id] = setTimeout(async () => {
+    window._trackChange = (id, field, value) => {
+      if (!localChanges[id]) {
         const t = templates.find(x => x.id === id);
-        if (!t) return;
-        const updated = { title: t.title, text: t.text, [field]: value };
-        await updateDoc(doc(db, COL, id), updated);
-        const label = document.getElementById(`saved-${id}`);
-        if (label) { label.classList.add('show'); setTimeout(() => label.classList.remove('show'), 2000); }
-      }, 800);
+        localChanges[id] = { title: t?.title ?? '', text: t?.text ?? '' };
+      }
+      localChanges[id][field] = value;
+    };
+
+    window._saveTemplate = async id => {
+      const t = templates.find(x => x.id === id);
+      if (!t) return;
+      const changes = localChanges[id] ?? { title: t.title, text: t.text };
+      await updateDoc(doc(db, COL, id), { title: changes.title, text: changes.text });
+      delete localChanges[id];
+      const label = document.getElementById(`saved-${id}`);
+      if (label) { label.classList.add('show'); setTimeout(() => label.classList.remove('show'), 2000); }
     };
 
     window._copyTemplate = (id, btn) => {
