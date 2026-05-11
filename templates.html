@@ -17,22 +17,51 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 14px 18px;
+      padding: 12px 16px;
       border-bottom: 1px solid var(--border);
+      gap: 10px;
     }
-    .template-title { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .template-title-input {
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      flex: 1;
+      outline: none;
+      min-width: 0;
+    }
+    .template-title-input:focus { color: var(--accent); }
     .template-body {
-      padding: 14px 18px;
+      width: 100%;
+      padding: 14px 16px;
       font-family: 'Consolas', monospace;
       font-size: 13px;
-      white-space: pre-wrap;
       color: var(--text);
       line-height: 1.7;
       background: #1e1e2a;
-      cursor: text;
+      border: none;
       outline: none;
+      resize: vertical;
+      min-height: 120px;
+      display: block;
+      box-sizing: border-box;
     }
-    .template-body:focus { border-top: 1px solid var(--accent); }
+    .template-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      border-top: 1px solid var(--border);
+    }
+    .saved-label {
+      font-size: 11px;
+      color: var(--success);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .saved-label.show { opacity: 1; }
     .category-label {
       font-size: 11px;
       font-weight: 700;
@@ -42,6 +71,20 @@
       margin: 24px 0 10px;
     }
     .category-label:first-child { margin-top: 0; }
+    .add-template-btn {
+      width: 100%;
+      padding: 12px;
+      background: transparent;
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      color: var(--text-muted);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+      margin-top: 8px;
+    }
+    .add-template-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
   </style>
 </head>
 <body>
@@ -57,171 +100,101 @@
   <main>
     <div class="page-header">
       <h1>Discordテンプレート</h1>
-      <div class="text-muted" style="font-size:13px">編集してそのままコピー</div>
+      <div class="text-muted" style="font-size:12px">直接編集して保存できます</div>
     </div>
-
-    <div id="templateList" class="template-grid"></div>
+    <div id="root"></div>
   </main>
 
   <div class="toast" id="toast"></div>
 
   <script type="module">
+    import { db } from './js/config.js';
+    import {
+      collection, addDoc, getDocs, doc, updateDoc, deleteDoc, orderBy, query, onSnapshot
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const COL = 'templates';
+    const root = document.getElementById('root');
     const toast = document.getElementById('toast');
 
-    const TEMPLATES = [
-      {
-        category: '練習会',
-        items: [
-          {
-            id: 'practice-announce',
-            title: '📅 練習会告知',
-            text: `【練習会のお知らせ】
-
-📅 日時：〇月〇日（〇）〇〇:〇〇〜
-📍 形式：〇v〇 / カスタム
-👥 参加人数：〇名
-
-━━━━━━━━━━━━━
-📋 内容
-・〇〇
-・〇〇
-
-⚠️ 注意事項
-・時間になったらロビーに入ってください
-・遅刻する場合は事前に連絡をお願いします
-
-参加できる人は ✅ リアクションをお願いします！`
-          },
-          {
-            id: 'practice-result',
-            title: '📊 練習会結果報告',
-            text: `【練習会 結果報告】
-
-📅 〇月〇日（〇）
-👥 参加者：〇名
-
-━━━━━━━━━━━━━
-📋 やったこと
-・〇〇
-
-💬 振り返り
-・良かった点：
-・改善点：
-
-次回練習会：〇月〇日予定`
-          }
-        ]
-      },
-      {
-        category: 'スクリム',
-        items: [
-          {
-            id: 'scrim-recruit',
-            title: '⚔️ スクリム募集',
-            text: `【スクリム募集】
-
-チーム名：GalaxyRize
-📅 希望日時：〇月〇日（〇）〇〇:〇〇〜
-🎮 形式：〇v〇
-🏆 レベル：〇〇帯
-
-ルール：
-・カスタム使用
-・〇〇
-
-興味ある方はDMまたはここに返信ください！`
-          },
-          {
-            id: 'scrim-result',
-            title: '🏆 スクリム結果',
-            text: `【スクリム結果】
-
-vs 〇〇チーム
-📅 〇月〇日（〇）
-
-━━━━━━━━━━━━━
-第1試合：〇 - 〇
-第2試合：〇 - 〇
-第3試合：〇 - 〇
-
-結果：〇勝〇敗
-
-💬 メモ：`
-          }
-        ]
-      },
-      {
-        category: 'その他',
-        items: [
-          {
-            id: 'tournament-start',
-            title: '🏆 トーナメント開始アナウンス',
-            text: `【トーナメント開始】
-
-🎮 〇〇大会 スタートします！
-形式：〇エリミネーション 〇v〇
-
-━━━━━━━━━━━━━
-🗓️ 対戦表
-
-1回戦
-・〇〇 vs 〇〇
-・〇〇 vs 〇〇
-
-準備できたらロビーへ！`
-          },
-          {
-            id: 'reminder',
-            title: '🔔 リマインダー',
-            text: `【リマインダー】
-
-本日〇〇:〇〇から練習会があります！
-
-参加予定の方は時間までにDiscordへ集合してください 🙌
-
-未回答の方は参加・不参加を教えてください！`
-          },
-          {
-            id: 'recruit',
-            title: '🙋 メンバー募集',
-            text: `【メンバー募集】
-
-GalaxyRize ではメンバーを募集しています！
-
-🎮 種目：フォートナイト
-📊 レベル：〇〇帯以上
-👥 募集人数：〇名
-
-活動内容：
-・週〇回程度の練習会
-・スクリム参加
-・大会出場
-
-興味ある方はDMください！`
-          }
-        ]
-      }
+    const DEFAULTS = [
+      { category: '練習会', title: '📅 練習会告知', text: `【練習会のお知らせ】\n\n📅 日時：〇月〇日（〇）〇〇:〇〇〜\n📍 形式：〇v〇 / カスタム\n👥 参加人数：〇名\n\n━━━━━━━━━━━━━\n📋 内容\n・\n・\n\n⚠️ 注意事項\n・時間になったらロビーに入ってください\n・遅刻する場合は事前に連絡をお願いします\n\n参加できる人は ✅ リアクションをお願いします！` },
+      { category: '練習会', title: '📊 練習会結果報告', text: `【練習会 結果報告】\n\n📅 〇月〇日（〇）\n👥 参加者：〇名\n\n━━━━━━━━━━━━━\n📋 やったこと\n・\n\n💬 振り返り\n・良かった点：\n・改善点：\n\n次回練習会：〇月〇日予定` },
+      { category: 'スクリム', title: '⚔️ スクリム募集', text: `【スクリム募集】\n\nチーム名：GalaxyRize\n📅 希望日時：〇月〇日（〇）〇〇:〇〇〜\n🎮 形式：〇v〇\n🏆 レベル：〇〇帯\n\nルール：\n・カスタム使用\n・\n\n興味ある方はDMまたはここに返信ください！` },
+      { category: 'スクリム', title: '🏆 スクリム結果', text: `【スクリム結果】\n\nvs 〇〇チーム\n📅 〇月〇日（〇）\n\n━━━━━━━━━━━━━\n第1試合：〇 - 〇\n第2試合：〇 - 〇\n第3試合：〇 - 〇\n\n結果：〇勝〇敗\n\n💬 メモ：` },
+      { category: 'その他', title: '🏆 トーナメント開始', text: `【トーナメント開始】\n\n🎮 〇〇大会 スタートします！\n形式：〇エリミネーション 〇v〇\n\n━━━━━━━━━━━━━\n🗓️ 対戦表\n\n1回戦\n・〇〇 vs 〇〇\n・〇〇 vs 〇〇\n\n準備できたらロビーへ！` },
+      { category: 'その他', title: '🔔 リマインダー', text: `【リマインダー】\n\n本日〇〇:〇〇から練習会があります！\n\n参加予定の方は時間までにDiscordへ集合してください 🙌\n\n未回答の方は参加・不参加を教えてください！` },
     ];
 
-    function render() {
-      const container = document.getElementById('templateList');
-      container.innerHTML = TEMPLATES.map(cat => `
-        <div class="category-label">${cat.category}</div>
-        ${cat.items.map(t => `
-          <div class="template-card">
-            <div class="template-header">
-              <div class="template-title">${t.title}</div>
-              <button class="btn btn-outline btn-sm" onclick="copyTemplate('${t.id}', this)">コピー</button>
-            </div>
-            <div class="template-body" id="tpl-${t.id}" contenteditable="true" spellcheck="false">${escHtml(t.text)}</div>
-          </div>
-        `).join('')}
-      `).join('');
+    let templates = [];
+    const saveTimers = {};
+
+    // 初回のみデフォルトを投入
+    async function initDefaults() {
+      const snap = await getDocs(collection(db, COL));
+      if (snap.empty) {
+        for (const t of DEFAULTS) {
+          await addDoc(collection(db, COL), { ...t, createdAt: new Date() });
+        }
+      }
     }
 
-    window.copyTemplate = (id, btn) => {
-      const el = document.getElementById(`tpl-${id}`);
-      const text = el.innerText;
+    // リアルタイム同期
+    onSnapshot(query(collection(db, COL), orderBy('createdAt', 'asc')), snap => {
+      templates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      render();
+    });
+
+    function render() {
+      const categories = [...new Set(templates.map(t => t.category))];
+      root.innerHTML = categories.map(cat => {
+        const items = templates.filter(t => t.category === cat);
+        return `
+          <div class="category-label">${esc(cat)}</div>
+          ${items.map(t => renderCard(t)).join('')}
+          <button class="add-template-btn" onclick="window._addTemplate('${esc(cat)}')">+ この分類にテンプレートを追加</button>
+        `;
+      }).join('') + `
+        <div class="category-label" style="margin-top:24px">新しい分類</div>
+        <button class="add-template-btn" onclick="window._addCategory()">+ 新しい分類を追加</button>
+      `;
+    }
+
+    function renderCard(t) {
+      return `
+        <div class="template-card" id="card-${t.id}">
+          <div class="template-header">
+            <input class="template-title-input" value="${esc(t.title)}"
+              oninput="window._scheduleUpdate('${t.id}', 'title', this.value)"
+              placeholder="タイトル">
+            <button class="btn btn-outline btn-sm" onclick="window._copyTemplate('${t.id}', this)">コピー</button>
+            <button class="btn-ghost-danger" onclick="window._deleteTemplate('${t.id}')">削除</button>
+          </div>
+          <textarea class="template-body" rows="8"
+            oninput="window._scheduleUpdate('${t.id}', 'text', this.value)"
+            >${esc(t.text)}</textarea>
+          <div class="template-footer">
+            <span class="saved-label" id="saved-${t.id}">✓ 保存しました</span>
+          </div>
+        </div>`;
+    }
+
+    // 自動保存（入力が止まって0.8秒後）
+    window._scheduleUpdate = (id, field, value) => {
+      clearTimeout(saveTimers[id]);
+      saveTimers[id] = setTimeout(async () => {
+        const t = templates.find(x => x.id === id);
+        if (!t) return;
+        const updated = { title: t.title, text: t.text, [field]: value };
+        await updateDoc(doc(db, COL, id), updated);
+        const label = document.getElementById(`saved-${id}`);
+        if (label) { label.classList.add('show'); setTimeout(() => label.classList.remove('show'), 2000); }
+      }, 800);
+    };
+
+    window._copyTemplate = (id, btn) => {
+      const card = document.getElementById(`card-${id}`);
+      const text = card?.querySelector('textarea')?.value ?? '';
       navigator.clipboard.writeText(text).then(() => {
         const orig = btn.textContent;
         btn.textContent = '✓ コピー済み';
@@ -230,17 +203,32 @@ GalaxyRize ではメンバーを募集しています！
       });
     };
 
+    window._deleteTemplate = async id => {
+      if (!confirm('このテンプレートを削除しますか？')) return;
+      await deleteDoc(doc(db, COL, id));
+    };
+
+    window._addTemplate = async category => {
+      await addDoc(collection(db, COL), { category, title: '新しいテンプレート', text: '', createdAt: new Date() });
+    };
+
+    window._addCategory = async () => {
+      const name = prompt('新しい分類名を入力してください');
+      if (!name?.trim()) return;
+      await addDoc(collection(db, COL), { category: name.trim(), title: '新しいテンプレート', text: '', createdAt: new Date() });
+    };
+
     function showToast(msg, type = '') {
       toast.textContent = msg;
       toast.className = 'toast show ' + type;
       setTimeout(() => { toast.className = 'toast'; }, 2600);
     }
 
-    function escHtml(s) {
-      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    function esc(s) {
+      return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
-    render();
+    initDefaults();
   </script>
 </body>
 </html>
