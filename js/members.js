@@ -14,6 +14,8 @@ const modalTitle = document.getElementById('modalTitle');
 const nameInput = document.getElementById('nameInput');
 const epicIdInput = document.getElementById('epicIdInput');
 const discordIdInput = document.getElementById('discordIdInput');
+const roleInput = document.getElementById('roleInput');
+const memoInput = document.getElementById('memoInput');
 const toast = document.getElementById('toast');
 
 // ── EVENTS ──────────────────────────────────────────────────────────
@@ -33,6 +35,8 @@ function openModal(member) {
   nameInput.value = member?.name ?? '';
   epicIdInput.value = member?.epicId ?? '';
   discordIdInput.value = member?.discordId ?? '';
+  roleInput.value = member?.role ?? '';
+  memoInput.value = member?.memo ?? '';
   overlay.classList.add('open');
   setTimeout(() => nameInput.focus(), 50);
 }
@@ -46,15 +50,17 @@ async function save() {
   const name = nameInput.value.trim();
   const epicId = epicIdInput.value.trim();
   const discordId = discordIdInput.value.trim();
+  const role = roleInput.value;
+  const memo = memoInput.value.trim();
   if (!name) { showToast('名前を入力してください', 'error'); return; }
   if (!epicId) { showToast('Epic IDを入力してください', 'error'); return; }
 
   try {
     if (editingId) {
-      await updateDoc(doc(db, COL, editingId), { name, epicId, discordId });
+      await updateDoc(doc(db, COL, editingId), { name, epicId, discordId, role, memo });
       showToast('更新しました', 'success');
     } else {
-      await addDoc(collection(db, COL), { name, epicId, discordId, createdAt: new Date() });
+      await addDoc(collection(db, COL), { name, epicId, discordId, role, memo, createdAt: new Date() });
       showToast('追加しました', 'success');
     }
     closeModal();
@@ -111,8 +117,14 @@ function render() {
         <div class="member-row">
           <div class="member-avatar">${esc((m.name || m.epicId)[0].toUpperCase())}</div>
           <div class="member-info">
-            <div class="member-epic">${esc(m.name || m.epicId)}</div>
-            <div class="member-discord">Epic ID: ${esc(m.epicId)}${m.discordId ? ' · Discord: ' + esc(m.discordId) : ' · Discord ID 未設定'}</div>
+            <div class="member-epic" style="display:flex;align-items:center;gap:6px">
+              ${esc(m.name || m.epicId)}
+              ${m.role ? `<span style="font-size:10px;padding:1px 7px;border-radius:20px;background:rgba(124,90,246,0.15);color:#a78bfa;font-weight:600">${esc(m.role)}</span>` : ''}
+            </div>
+            <div class="member-discord">
+              Epic ID: ${esc(m.epicId)}${m.discordId ? ' · Discord: ' + esc(m.discordId) : ''}
+              ${m.memo ? ` · ${esc(m.memo)}` : ''}
+            </div>
           </div>
           <div class="member-actions">
             <button class="btn-copy" onclick="copyEpicId('${m.id}', this)">Epic IDをコピー</button>

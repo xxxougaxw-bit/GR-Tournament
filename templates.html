@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>テンプレート | GR Tools</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .template-grid { display: flex; flex-direction: column; gap: 16px; }
+    .template-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .template-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .template-title { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .template-body {
+      padding: 14px 18px;
+      font-family: 'Consolas', monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+      color: var(--text);
+      line-height: 1.7;
+      background: #1e1e2a;
+      cursor: text;
+      outline: none;
+    }
+    .template-body:focus { border-top: 1px solid var(--accent); }
+    .category-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 24px 0 10px;
+    }
+    .category-label:first-child { margin-top: 0; }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="index.html" class="nav-brand">GR TOOLS</a>
+    <a href="members.html" class="nav-link">メンバー</a>
+    <a href="tournament.html" class="nav-link">トーナメント</a>
+    <a href="templates.html" class="nav-link active">テンプレート</a>
+    <a href="https://docs.google.com/forms/d/1qW54A7iSw-CXLTHmUGSoD23Ur3grSP4EGgVKnswhTQs/viewform" class="nav-link" target="_blank">📝 フォーム</a>
+    <a href="https://docs.google.com/spreadsheets/d/1gz32Wh_0UC8Fegc8amK8VYWKKw28FMQRQVli7CgBWf4/edit?resourcekey=&gid=1692161048#gid=1692161048" class="nav-link" target="_blank">📊 シート</a>
+  </nav>
+
+  <main>
+    <div class="page-header">
+      <h1>Discordテンプレート</h1>
+      <div class="text-muted" style="font-size:13px">編集してそのままコピー</div>
+    </div>
+
+    <div id="templateList" class="template-grid"></div>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module">
+    const toast = document.getElementById('toast');
+
+    const TEMPLATES = [
+      {
+        category: '練習会',
+        items: [
+          {
+            id: 'practice-announce',
+            title: '📅 練習会告知',
+            text: `【練習会のお知らせ】
+
+📅 日時：〇月〇日（〇）〇〇:〇〇〜
+📍 形式：〇v〇 / カスタム
+👥 参加人数：〇名
+
+━━━━━━━━━━━━━
+📋 内容
+・〇〇
+・〇〇
+
+⚠️ 注意事項
+・時間になったらロビーに入ってください
+・遅刻する場合は事前に連絡をお願いします
+
+参加できる人は ✅ リアクションをお願いします！`
+          },
+          {
+            id: 'practice-result',
+            title: '📊 練習会結果報告',
+            text: `【練習会 結果報告】
+
+📅 〇月〇日（〇）
+👥 参加者：〇名
+
+━━━━━━━━━━━━━
+📋 やったこと
+・〇〇
+
+💬 振り返り
+・良かった点：
+・改善点：
+
+次回練習会：〇月〇日予定`
+          }
+        ]
+      },
+      {
+        category: 'スクリム',
+        items: [
+          {
+            id: 'scrim-recruit',
+            title: '⚔️ スクリム募集',
+            text: `【スクリム募集】
+
+チーム名：GalaxyRize
+📅 希望日時：〇月〇日（〇）〇〇:〇〇〜
+🎮 形式：〇v〇
+🏆 レベル：〇〇帯
+
+ルール：
+・カスタム使用
+・〇〇
+
+興味ある方はDMまたはここに返信ください！`
+          },
+          {
+            id: 'scrim-result',
+            title: '🏆 スクリム結果',
+            text: `【スクリム結果】
+
+vs 〇〇チーム
+📅 〇月〇日（〇）
+
+━━━━━━━━━━━━━
+第1試合：〇 - 〇
+第2試合：〇 - 〇
+第3試合：〇 - 〇
+
+結果：〇勝〇敗
+
+💬 メモ：`
+          }
+        ]
+      },
+      {
+        category: 'その他',
+        items: [
+          {
+            id: 'tournament-start',
+            title: '🏆 トーナメント開始アナウンス',
+            text: `【トーナメント開始】
+
+🎮 〇〇大会 スタートします！
+形式：〇エリミネーション 〇v〇
+
+━━━━━━━━━━━━━
+🗓️ 対戦表
+
+1回戦
+・〇〇 vs 〇〇
+・〇〇 vs 〇〇
+
+準備できたらロビーへ！`
+          },
+          {
+            id: 'reminder',
+            title: '🔔 リマインダー',
+            text: `【リマインダー】
+
+本日〇〇:〇〇から練習会があります！
+
+参加予定の方は時間までにDiscordへ集合してください 🙌
+
+未回答の方は参加・不参加を教えてください！`
+          },
+          {
+            id: 'recruit',
+            title: '🙋 メンバー募集',
+            text: `【メンバー募集】
+
+GalaxyRize ではメンバーを募集しています！
+
+🎮 種目：フォートナイト
+📊 レベル：〇〇帯以上
+👥 募集人数：〇名
+
+活動内容：
+・週〇回程度の練習会
+・スクリム参加
+・大会出場
+
+興味ある方はDMください！`
+          }
+        ]
+      }
+    ];
+
+    function render() {
+      const container = document.getElementById('templateList');
+      container.innerHTML = TEMPLATES.map(cat => `
+        <div class="category-label">${cat.category}</div>
+        ${cat.items.map(t => `
+          <div class="template-card">
+            <div class="template-header">
+              <div class="template-title">${t.title}</div>
+              <button class="btn btn-outline btn-sm" onclick="copyTemplate('${t.id}', this)">コピー</button>
+            </div>
+            <div class="template-body" id="tpl-${t.id}" contenteditable="true" spellcheck="false">${escHtml(t.text)}</div>
+          </div>
+        `).join('')}
+      `).join('');
+    }
+
+    window.copyTemplate = (id, btn) => {
+      const el = document.getElementById(`tpl-${id}`);
+      const text = el.innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = '✓ コピー済み';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 2000);
+      });
+    };
+
+    function showToast(msg, type = '') {
+      toast.textContent = msg;
+      toast.className = 'toast show ' + type;
+      setTimeout(() => { toast.className = 'toast'; }, 2600);
+    }
+
+    function escHtml(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    render();
+  </script>
+</body>
+</html>
