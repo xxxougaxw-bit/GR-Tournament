@@ -24,6 +24,75 @@
     .hero { text-align: center; padding: 48px 0 32px; }
     .hero-title { font-size: 28px; font-weight: 800; color: var(--accent); letter-spacing: -0.5px; }
     .hero-sub { font-size: 14px; color: var(--text-muted); margin-top: 8px; }
+
+    /* マルチリンクカード */
+    .home-card-multi {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px 24px;
+      color: var(--text);
+    }
+    .home-card-links { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+    .home-card-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 13px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--text-muted);
+      font-size: 13px;
+      transition: all 0.15s;
+    }
+    .home-card-link:hover { border-color: var(--accent); color: var(--text); background: var(--accent-dim); }
+
+    /* ナビドロップダウン */
+    .nav-dropdown { position: relative; }
+    .nav-dropdown-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+      padding: 0;
+      transition: color 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .nav-dropdown-btn:hover { color: var(--text); }
+    .nav-dropdown-menu {
+      position: absolute;
+      top: calc(100% + 14px);
+      left: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 6px;
+      min-width: 190px;
+      z-index: 100;
+      display: none;
+      flex-direction: column;
+      gap: 2px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+    .nav-dropdown.open .nav-dropdown-menu { display: flex; }
+    .nav-dropdown-item {
+      display: block;
+      padding: 8px 12px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13px;
+      border-radius: 6px;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .nav-dropdown-item:hover { background: var(--surface2); color: var(--text); }
+
     @media (max-width: 480px) { .home-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
@@ -33,8 +102,20 @@
     <a href="members.html" class="nav-link">メンバー</a>
     <a href="tournament.html" class="nav-link">トーナメント</a>
     <a href="templates.html" class="nav-link">テンプレート</a>
-    <a href="https://docs.google.com/forms/d/1qW54A7iSw-CXLTHmUGSoD23Ur3grSP4EGgVKnswhTQs/viewform" class="nav-link" target="_blank">📝 フォーム</a>
-    <a href="https://docs.google.com/spreadsheets/d/1gz32Wh_0UC8Fegc8amK8VYWKKw28FMQRQVli7CgBWf4/edit?resourcekey=&gid=1692161048#gid=1692161048" class="nav-link" target="_blank">📊 シート</a>
+    <div class="nav-dropdown" id="nav-form-dropdown">
+      <button class="nav-dropdown-btn" onclick="toggleDropdown('nav-form-dropdown')">📝 フォーム ▾</button>
+      <div class="nav-dropdown-menu">
+        <a href="https://docs.google.com/forms/d/1qW54A7iSw-CXLTHmUGSoD23Ur3grSP4EGgVKnswhTQs/viewform" class="nav-dropdown-item" target="_blank">練習報告フォーム</a>
+        <a href="https://forms.gle/sdi4yXdegNtn1Tus5" class="nav-dropdown-item" target="_blank">練習会振り返りフォーム</a>
+      </div>
+    </div>
+    <div class="nav-dropdown" id="nav-sheet-dropdown">
+      <button class="nav-dropdown-btn" onclick="toggleDropdown('nav-sheet-dropdown')">📊 シート ▾</button>
+      <div class="nav-dropdown-menu">
+        <a href="https://docs.google.com/spreadsheets/d/1gz32Wh_0UC8Fegc8amK8VYWKKw28FMQRQVli7CgBWf4/edit?resourcekey=&gid=1692161048#gid=1692161048" class="nav-dropdown-item" target="_blank">練習報告シート</a>
+        <a href="https://docs.google.com/spreadsheets/d/1T9HbMxLVkuh5jcHfc5H5vEenPUZ4oHent_GpKRq4TyY/edit?usp=sharing" class="nav-dropdown-item" target="_blank">練習会振り返りシート</a>
+      </div>
+    </div>
   </nav>
   <main>
     <div class="hero">
@@ -57,17 +138,46 @@
         <div class="home-card-title">テンプレート</div>
         <div class="home-card-desc">スクリム募集・練習会告知などのDiscordテンプレートをワンクリックでコピー。</div>
       </a>
-      <a href="https://docs.google.com/forms/d/1qW54A7iSw-CXLTHmUGSoD23Ur3grSP4EGgVKnswhTQs/viewform" target="_blank" class="home-card">
+      <div class="home-card-multi">
         <div class="home-card-icon">📝</div>
-        <div class="home-card-title">練習報告フォーム</div>
-        <div class="home-card-desc">Googleフォームで練習報告を入力する。</div>
-      </a>
-      <a href="https://docs.google.com/spreadsheets/d/1gz32Wh_0UC8Fegc8amK8VYWKKw28FMQRQVli7CgBWf4/edit?resourcekey=&gid=1692161048#gid=1692161048" target="_blank" class="home-card">
+        <div class="home-card-title">フォーム</div>
+        <div class="home-card-desc">各種Googleフォームを開く。</div>
+        <div class="home-card-links">
+          <a href="https://docs.google.com/forms/d/1qW54A7iSw-CXLTHmUGSoD23Ur3grSP4EGgVKnswhTQs/viewform" class="home-card-link" target="_blank">
+            <span>練習報告フォーム</span><span>→</span>
+          </a>
+          <a href="https://forms.gle/sdi4yXdegNtn1Tus5" class="home-card-link" target="_blank">
+            <span>練習会振り返りフォーム</span><span>→</span>
+          </a>
+        </div>
+      </div>
+      <div class="home-card-multi">
         <div class="home-card-icon">📊</div>
         <div class="home-card-title">スプレッドシート</div>
-        <div class="home-card-desc">練習報告のデータをスプレッドシートで確認する。</div>
-      </a>
+        <div class="home-card-desc">各種データシートを確認する。</div>
+        <div class="home-card-links">
+          <a href="https://docs.google.com/spreadsheets/d/1gz32Wh_0UC8Fegc8amK8VYWKKw28FMQRQVli7CgBWf4/edit?resourcekey=&gid=1692161048#gid=1692161048" class="home-card-link" target="_blank">
+            <span>練習報告シート</span><span>→</span>
+          </a>
+          <a href="https://docs.google.com/spreadsheets/d/1T9HbMxLVkuh5jcHfc5H5vEenPUZ4oHent_GpKRq4TyY/edit?usp=sharing" class="home-card-link" target="_blank">
+            <span>練習会振り返りシート</span><span>→</span>
+          </a>
+        </div>
+      </div>
     </div>
   </main>
+  <script>
+    function toggleDropdown(id) {
+      const el = document.getElementById(id);
+      const isOpen = el.classList.contains('open');
+      document.querySelectorAll('.nav-dropdown').forEach(d => d.classList.remove('open'));
+      if (!isOpen) el.classList.add('open');
+    }
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.nav-dropdown')) {
+        document.querySelectorAll('.nav-dropdown').forEach(d => d.classList.remove('open'));
+      }
+    });
+  </script>
 </body>
 </html>
