@@ -335,6 +335,14 @@ function renderBracket() {
         <div class="discord-box" id="discordOutput">${esc(discordText)}</div>
         <button class="btn btn-outline btn-sm" style="position:absolute;top:10px;right:10px" onclick="window._copyDiscord()">コピー</button>
       </div>
+      <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+        <input type="text" class="form-input" id="webhookUrl"
+          placeholder="Discord Webhook URL（チャンネルの設定 → 連携サービス → Webhookから取得）"
+          value="${esc(localStorage.getItem('discordWebhook') || '')}"
+          style="flex:1;font-size:12px"
+          oninput="localStorage.setItem('discordWebhook', this.value)">
+        <button class="btn btn-primary btn-sm" onclick="window._postToDiscord()">Discordに投稿</button>
+      </div>
     </div>`;
 }
 
@@ -481,6 +489,31 @@ window._deleteTournament = async () => {
 window._copyDiscord = () => {
   const text = document.getElementById('discordOutput')?.textContent ?? '';
   navigator.clipboard.writeText(text).then(() => showToast('Discordテキストをコピーしました', 'success'));
+};
+
+window._postToDiscord = async () => {
+  const webhookUrl = document.getElementById('webhookUrl')?.value.trim();
+  if (!webhookUrl) { showToast('Webhook URLを入力してください', 'error'); return; }
+  const text = document.getElementById('discordOutput')?.textContent ?? '';
+  if (!text.trim()) { showToast('投稿するテキストがありません', 'error'); return; }
+
+  // Discordの2000文字制限に対応して分割送信
+  const chunks = [];
+  for (let i = 0; i < text.length; i += 2000) chunks.push(text.slice(i, i + 2000));
+
+  try {
+    for (const chunk of chunks) {
+      const res = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: chunk })
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    }
+    showToast('Discordに投稿しました！', 'success');
+  } catch (e) {
+    showToast('投稿失敗: ' + e.message, 'error');
+  }
 };
 
 // ── TOAST ────────────────────────────────────────────────────────────
